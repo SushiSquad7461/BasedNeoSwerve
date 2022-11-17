@@ -39,41 +39,31 @@ public class Swerve extends SubsystemBase {
     swerveOdometry = new SwerveDriveOdometry(Constants.kSwerve.KINEMATICS, getYaw());
   }
 
-  public void drive(double xSpeed, double ySpeed, double rotation, boolean isFieldRelative, boolean isOpenLoop) {
-    ChassisSpeeds chassisSpeeds = isFieldRelative
-      ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotation, getYaw())
-      : new ChassisSpeeds(xSpeed, ySpeed, rotation);
-
-    SwerveModuleState[] states = Constants.kSwerve.KINEMATICS.toSwerveModuleStates(chassisSpeeds);
-
-    setModuleStates(states, isOpenLoop);
-  }
-
   /** 
    * This is called a command factory method, and these methods help reduce the
    * number of files in the command folder, increasing readability and reducing
    * boilerplate. */
-  public Command getDriveCommand(Joystick joystick, int xTranslationAxis, int yTranslationAxis, int rotationAxis, boolean isFieldRelative, boolean isOpenLoop) {
+  public Command drive(Joystick joystick, int xTranslationAxis, int yTranslationAxis, int rotationAxis, boolean isFieldRelative, boolean isOpenLoop) {
     return new RunCommand(() -> {
+      // Grabbing input from joysticks.
       double xTranslation = joystick.getRawAxis(xTranslationAxis);
       double yTranslation = joystick.getRawAxis(yTranslationAxis);
       double rotation = joystick.getRawAxis(rotationAxis);
 
+      // Adding deadzone.
       xTranslation = Math.abs(xTranslation) < Constants.kControls.AXIS_DEADZONE ? 0 : xTranslation;
       yTranslation = Math.abs(yTranslation) < Constants.kControls.AXIS_DEADZONE ? 0 : yTranslation;
       rotation = Math.abs(rotation) < Constants.kControls.AXIS_DEADZONE ? 0 : rotation;
 
-      drive(
-        yTranslation * Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND,
-        xTranslation * Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND,
-        rotation * Constants.kSwerve.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
-        isFieldRelative,
-        isOpenLoop);
-    }, this);
-  }
+      // Get desired module states.
+      ChassisSpeeds chassisSpeeds = isFieldRelative
+        ? ChassisSpeeds.fromFieldRelativeSpeeds(xTranslation, yTranslation, rotation, getYaw())
+        : new ChassisSpeeds(xTranslation, yTranslation, rotation);
 
-  public Command getZeroGyroCommand() {
-    return new InstantCommand(this::zeroGyro);
+      SwerveModuleState[] states = Constants.kSwerve.KINEMATICS.toSwerveModuleStates(chassisSpeeds);
+
+      setModuleStates(states, isOpenLoop);
+    }, this);
   }
 
   /** To be used by auto. Use the drive method during teleop. */
@@ -99,7 +89,11 @@ public class Swerve extends SubsystemBase {
     return Rotation2d.fromDegrees(gyro.getYaw());
   }
 
-  public void zeroGyro() {
+  public Command getZeroGyroCommand() {
+    return new InstantCommand(this::zeroGyro);
+  }
+
+  private void zeroGyro() {
     gyro.setYaw(0);
   }
 

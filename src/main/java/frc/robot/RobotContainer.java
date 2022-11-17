@@ -17,7 +17,7 @@ public class RobotContainer {
   public final Joystick driver;
 
   public final Swerve swerve;
-
+  
   public RobotContainer() {
     driver = new Joystick(Constants.kControls.DRIVE_JOYSTICK_ID);
 
@@ -34,7 +34,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    swerve.setDefaultCommand(swerve.getDriveCommand(
+    swerve.setDefaultCommand(swerve.drive(
       driver,
       Constants.kControls.TRANSLATION_X_AXIS, 
       Constants.kControls.TRANSLATION_Y_AXIS,
