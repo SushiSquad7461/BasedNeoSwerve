@@ -67,7 +67,7 @@ public class Swerve extends SubsystemBase {
       SwerveModuleState[] states = Constants.kSwerve.KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
       setModuleStates(states, isOpenLoop);
-    }, this);
+    }, this).withName("SwerveDriveCommand");
   }
 
   /** To be used by auto. Use the drive method during teleop. */
@@ -93,8 +93,8 @@ public class Swerve extends SubsystemBase {
     return Rotation2d.fromDegrees(gyro.getYaw());
   }
 
-  public Command getZeroGyroCommand() {
-    return new InstantCommand(this::zeroGyro);
+  public Command zeroGyroCommand() {
+    return new InstantCommand(this::zeroGyro).withName("ZeroGyroCommand");
   }
 
   private void zeroGyro() {

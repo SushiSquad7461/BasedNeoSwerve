@@ -43,7 +43,7 @@ public class RobotContainer {
     ));
 
     new JoystickButton(driver, Constants.kControls.GYRO_RESET_BUTTON)
-      .whenActive(swerve.getZeroGyroCommand());
+      .whenActive(swerve.zeroGyroCommand());
   }
 
     /**
