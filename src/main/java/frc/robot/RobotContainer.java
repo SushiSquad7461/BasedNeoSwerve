@@ -35,10 +35,9 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     swerve.setDefaultCommand(swerve.drive(
-      driver,
-      Constants.kControls.TRANSLATION_X_AXIS, 
-      Constants.kControls.TRANSLATION_Y_AXIS,
-      Constants.kControls.ROTATION_AXIS,
+      () -> driver.getRawAxis(Constants.kControls.TRANSLATION_X_AXIS), 
+      () -> driver.getRawAxis(Constants.kControls.TRANSLATION_Y_AXIS),
+      () -> driver.getRawAxis(Constants.kControls.ROTATION_AXIS),
       false,
       false
     ));

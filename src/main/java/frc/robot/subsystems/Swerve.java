@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.sensors.Pigeon2;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -42,13 +44,16 @@ public class Swerve extends SubsystemBase {
   /** 
    * This is called a command factory method, and these methods help reduce the
    * number of files in the command folder, increasing readability and reducing
-   * boilerplate. */
-  public Command drive(Joystick joystick, int xTranslationAxis, int yTranslationAxis, int rotationAxis, boolean isFieldRelative, boolean isOpenLoop) {
+   * boilerplate. 
+   * 
+   * Double suppliers are just any function that returns a double.
+   */
+  public Command drive(DoubleSupplier xTranslationAxis, DoubleSupplier yTranslationAxis, DoubleSupplier rotationAxis, boolean isFieldRelative, boolean isOpenLoop) {
     return new RunCommand(() -> {
-      // Grabbing input from joysticks.
-      double xTranslation = joystick.getRawAxis(xTranslationAxis);
-      double yTranslation = joystick.getRawAxis(yTranslationAxis);
-      double rotation = joystick.getRawAxis(rotationAxis);
+      // Grabbing input from suppliers.
+      double xTranslation = xTranslationAxis.getAsDouble();
+      double yTranslation = yTranslationAxis.getAsDouble();
+      double rotation = rotationAxis.getAsDouble();
 
       // Adding deadzone.
       xTranslation = Math.abs(xTranslation) < Constants.kControls.AXIS_DEADZONE ? 0 : xTranslation;
