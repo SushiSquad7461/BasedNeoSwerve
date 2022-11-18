@@ -116,6 +116,7 @@ public class Swerve extends SubsystemBase {
 
   @Override
   public void initSendable(SendableBuilder builder) {
+    super.initSendable(builder);
     for (SwerveModule module : modules) {
       builder.addStringProperty(
         String.format("Module %d",
