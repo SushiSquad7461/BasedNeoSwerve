@@ -14,7 +14,6 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 
 public class SwerveModule {
@@ -70,7 +69,6 @@ public class SwerveModule {
       : state.angle.getRadians();
     anglePID.setReference(angle, CANSparkMax.ControlType.kPosition);
     lastAngle = angle;
-    SmartDashboard.putNumber("angle" + moduleNumber, angle);
   }
 
   public SwerveModuleState getState() {
