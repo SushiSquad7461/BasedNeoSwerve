@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -48,7 +49,7 @@ public class Swerve extends SubsystemBase {
    * Double suppliers are just any function that returns a double.
    */
   public Command drive(DoubleSupplier xTranslationAxis, DoubleSupplier yTranslationAxis, DoubleSupplier rotationAxis, boolean isFieldRelative, boolean isOpenLoop) {
-    return new RunCommand(() -> {
+    return run(() -> {
       // Grabbing input from suppliers.
       double xTranslation = xTranslationAxis.getAsDouble();
       double yTranslation = yTranslationAxis.getAsDouble();
@@ -94,7 +95,7 @@ public class Swerve extends SubsystemBase {
   }
 
   public Command zeroGyroCommand() {
-    return new InstantCommand(this::zeroGyro).withName("ZeroGyroCommand");
+    return runOnce(this::zeroGyro).withName("ZeroGyroCommand");
   }
 
   private void zeroGyro() {

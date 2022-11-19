@@ -17,12 +17,12 @@ public class RobotContainer {
   public final Joystick driver;
 
   public final Swerve swerve;
-  
+
   public RobotContainer() {
     driver = new Joystick(Constants.kControls.DRIVE_JOYSTICK_ID);
 
     swerve = new Swerve();
-    
+
     // Configure button bindings
     configureButtonBindings();
   }
@@ -43,7 +43,7 @@ public class RobotContainer {
     ));
 
     new JoystickButton(driver, Constants.kControls.GYRO_RESET_BUTTON)
-      .whenActive(swerve.zeroGyroCommand());
+      .onTrue(swerve.zeroGyroCommand());
   }
 
     /**
