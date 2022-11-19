@@ -1,31 +1,42 @@
 package frc.robot.subsystems;
 
+import java.util.List;
 import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 
+import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N7;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.utils.SwerveModule;
+import frc.robot.utils.VisionMeasurement;
 
 public class Swerve extends SubsystemBase {
+  private final RobotContainer container;
+
   private final SwerveModule[] modules;
 
-  private final SwerveDriveOdometry swerveOdometry;
+  private final SwerveDrivePoseEstimator<N7, N7, N7> swerveOdometry;
 
   private final Pigeon2 gyro;
 
-  public Swerve() {
+  public Swerve(RobotContainer container) {
+    this.container = container;
+
     gyro = new Pigeon2(Constants.kSwerve.PIGEON2_ID);
     gyro.configFactoryDefault();
     zeroGyro();
@@ -37,7 +48,17 @@ public class Swerve extends SubsystemBase {
       new SwerveModule(3, Constants.kSwerve.MOD_3_Constants),
     };
 
-    swerveOdometry = new SwerveDriveOdometry(Constants.kSwerve.KINEMATICS, getYaw());
+    swerveOdometry = new SwerveDrivePoseEstimator<>(
+      Nat.N7(),
+      Nat.N7(),
+      Nat.N7(), 
+      getYaw(),
+      new Pose2d(),
+      getPositions(),
+      Constants.kSwerve.KINEMATICS,
+      Constants.kSwerve.STATE_STANDARD_DEVIATION,
+      Constants.kSwerve.LOCAL_MEASUREMENTS_STANDARD_DEVIATION,
+      new Vector<>(Nat.N3()));
   }
 
   /** 
@@ -111,7 +132,7 @@ public class Swerve extends SubsystemBase {
   }
 
   public Pose2d getPose() {
-    return swerveOdometry.getPoseMeters();
+    return swerveOdometry.getEstimatedPosition();
   }
 
   public void resetOdometry(Pose2d pose) {
@@ -120,7 +141,16 @@ public class Swerve extends SubsystemBase {
 
   @Override
   public void periodic() {
-    swerveOdometry.update(getYaw(), getPositions());
+    swerveOdometry.update(getYaw(), getStates(), getPositions());
+
+    List<VisionMeasurement> measurements = container.vision.getMeasurements();
+
+    for (VisionMeasurement measurement : measurements) {
+      swerveOdometry.addVisionMeasurement(
+        measurement.pose,
+        Timer.getFPGATimestamp() - (measurement.latencyMillis / 1000),
+        Constants.kSwerve.VISION_STANDARD_DEVIATION.times(measurement.ambiguity)); 
+    }
   }
 
   @Override

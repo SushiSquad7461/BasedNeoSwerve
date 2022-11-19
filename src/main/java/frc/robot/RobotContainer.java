@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.Vision;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -18,10 +19,14 @@ public class RobotContainer {
 
   public final Swerve swerve;
 
+  public final Vision vision;
+
   public RobotContainer() {
     driver = new Joystick(Constants.kControls.DRIVE_JOYSTICK_ID);
 
-    swerve = new Swerve();
+    swerve = new Swerve(this);
+
+    vision = new Vision();
 
     // Configure button bindings
     configureButtonBindings();
@@ -46,7 +51,7 @@ public class RobotContainer {
       .onTrue(swerve.zeroGyroCommand());
   }
 
-    /**
+  /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *
    * @return the command to run in autonomous
