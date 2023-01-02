@@ -35,11 +35,11 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     swerve.setDefaultCommand(swerve.drive(
-      () -> driver.getRawAxis(Constants.kControls.TRANSLATION_X_AXIS), 
-      () -> driver.getRawAxis(Constants.kControls.TRANSLATION_Y_AXIS),
+      () -> -driver.getRawAxis(Constants.kControls.TRANSLATION_Y_AXIS),
+      () -> -driver.getRawAxis(Constants.kControls.TRANSLATION_X_AXIS), 
       () -> driver.getRawAxis(Constants.kControls.ROTATION_AXIS),
       false,
-      false
+      true
     ));
 
     new JoystickButton(driver, Constants.kControls.GYRO_RESET_BUTTON)
