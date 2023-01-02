@@ -37,8 +37,8 @@ public class RobotContainer {
     swerve.setDefaultCommand(swerve.drive(
       () -> -driver.getRawAxis(Constants.kControls.TRANSLATION_Y_AXIS),
       () -> -driver.getRawAxis(Constants.kControls.TRANSLATION_X_AXIS), 
-      () -> driver.getRawAxis(Constants.kControls.ROTATION_AXIS),
-      false,
+      () -> -driver.getRawAxis(Constants.kControls.ROTATION_AXIS),
+      true,
       true
     ));
 

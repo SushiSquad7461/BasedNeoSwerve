@@ -2,7 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix.sensors.Pigeon2;
+import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -23,11 +23,10 @@ public class Swerve extends SubsystemBase {
 
   private final SwerveDriveOdometry swerveOdometry;
 
-  private final Pigeon2 gyro;
+  private final AHRS gyro;
 
   public Swerve() {
-    gyro = new Pigeon2(Constants.kSwerve.PIGEON2_ID);
-    gyro.configFactoryDefault();
+    gyro = new AHRS();
     zeroGyro();
 
     modules = new SwerveModule[] {
@@ -47,22 +46,22 @@ public class Swerve extends SubsystemBase {
    * 
    * Double suppliers are just any function that returns a double.
    */
-  public Command drive(DoubleSupplier xTranslationAxis, DoubleSupplier yTranslationAxis, DoubleSupplier rotationAxis, boolean isFieldRelative, boolean isOpenLoop) {
+  public Command drive(DoubleSupplier forwardBackAxis, DoubleSupplier leftRightAxis, DoubleSupplier rotationAxis, boolean isFieldRelative, boolean isOpenLoop) {
     return new RunCommand(() -> {
       // Grabbing input from suppliers.
-      double xTranslation = xTranslationAxis.getAsDouble();
-      double yTranslation = yTranslationAxis.getAsDouble();
+      double forwardBack = forwardBackAxis.getAsDouble();
+      double leftRight = leftRightAxis.getAsDouble();
       double rotation = rotationAxis.getAsDouble();
 
       // Adding deadzone.
-      xTranslation = Math.abs(xTranslation) < Constants.kControls.AXIS_DEADZONE ? 0 : xTranslation;
-      yTranslation = Math.abs(yTranslation) < Constants.kControls.AXIS_DEADZONE ? 0 : yTranslation;
+      forwardBack = Math.abs(forwardBack) < Constants.kControls.AXIS_DEADZONE ? 0 : forwardBack;
+      leftRight = Math.abs(leftRight) < Constants.kControls.AXIS_DEADZONE ? 0 : leftRight;
       rotation = Math.abs(rotation) < Constants.kControls.AXIS_DEADZONE ? 0 : rotation;
 
       // Get desired module states.
       ChassisSpeeds chassisSpeeds = isFieldRelative
-        ? ChassisSpeeds.fromFieldRelativeSpeeds(xTranslation, yTranslation, rotation, getYaw())
-        : new ChassisSpeeds(xTranslation, yTranslation, rotation);
+        ? ChassisSpeeds.fromFieldRelativeSpeeds(forwardBack, leftRight, rotation, getYaw())
+        : new ChassisSpeeds(forwardBack, leftRight, rotation);
 
       SwerveModuleState[] states = Constants.kSwerve.KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
@@ -75,8 +74,8 @@ public class Swerve extends SubsystemBase {
     // Makes sure the module states don't exceed the max speed.
     SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND);
 
-    for (int i = 0; i < states.length; i++) {
-      modules[i].setState(states[i], isOpenLoop);
+    for (int i = 0; i < modules.length; i++) {
+      modules[i].setState(states[modules[i].moduleNumber], isOpenLoop);
     }
   }
 
@@ -90,7 +89,7 @@ public class Swerve extends SubsystemBase {
   }
 
   public Rotation2d getYaw() {
-    return Rotation2d.fromDegrees(gyro.getYaw());
+    return Rotation2d.fromDegrees(-gyro.getYaw());
   }
 
   public Command zeroGyroCommand() {
@@ -98,7 +97,7 @@ public class Swerve extends SubsystemBase {
   }
 
   private void zeroGyro() {
-    gyro.setYaw(0);
+    gyro.zeroYaw();
   }
 
   public Pose2d getPose() {
@@ -119,13 +118,23 @@ public class Swerve extends SubsystemBase {
     super.initSendable(builder);
     for (SwerveModule module : modules) {
       builder.addStringProperty(
-        String.format("Module %d",
-        module.moduleNumber),
+        String.format("Module %d", module.moduleNumber),
         () -> {
           SwerveModuleState state = module.getState();
-          return String.format("%.2fm/s %.0frad", state.speedMetersPerSecond, state.angle.getRadians());
+          return String.format("%6.2fm/s %6.3fdeg", state.speedMetersPerSecond, state.angle.getDegrees());
         },
         null);
+
+        builder.addDoubleProperty(
+          String.format("Cancoder %d", module.moduleNumber),
+          () -> module.getCanCoder(),
+          null);
+
+          
+        builder.addDoubleProperty(
+          String.format("Angle %d", module.moduleNumber),
+          () -> module.getAngle().getDegrees(),
+          null);
     }
   }
 }
