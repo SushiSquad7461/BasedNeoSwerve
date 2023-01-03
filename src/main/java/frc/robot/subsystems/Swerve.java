@@ -70,7 +70,11 @@ public class Swerve extends SubsystemBase {
   }
 
   /** To be used by auto. Use the drive method during teleop. */
-  public void setModuleStates(SwerveModuleState[] states, boolean isOpenLoop) {
+  public void setModuleStates(SwerveModuleState[] states) {
+    setModuleStates(states, false);
+  }
+
+  private void setModuleStates(SwerveModuleState[] states, boolean isOpenLoop) {
     // Makes sure the module states don't exceed the max speed.
     SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND);
 

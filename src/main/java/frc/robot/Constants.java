@@ -31,8 +31,6 @@ public class Constants {
   /** All swerve constants. */
   public static class kSwerve {
     /** Constants that apply to the whole drive train. */
-    public static final int PIGEON2_ID = 0;
-
     public static final double TRACK_WIDTH = Units.inchesToMeters(19.5); // Width of the drivetrain measured from the middle of the wheels.
     public static final double WHEEL_BASE = Units.inchesToMeters(19.5); // Length of the drivetrain measured from the middle of the wheels.
     public static final double WHEEL_DIAMETER = Units.inchesToMeters(4);
@@ -61,15 +59,15 @@ public class Constants {
     public static final int ANGLE_CURRENT_LIMIT = 25;
 
     /** Drive motor PID values. */
-    public static final double DRIVE_KP = 0.0;
+    public static final double DRIVE_KP = 0.1;
     public static final double DRIVE_KI = 0.0;
     public static final double DRIVE_KD = 0.0;
     public static final double DRIVE_KF = 0.0;
 
     /** Drive motor characterization. */
-    public static final double DRIVE_KS = 0.0;
-    public static final double DRIVE_KV = 0.0;
-    public static final double DRIVE_KA = 0.0;
+    public static final double DRIVE_KS = 0.11937;
+    public static final double DRIVE_KV = 2.6335;
+    public static final double DRIVE_KA = 0.46034;
 
     /** Angle motor PID values. */
     public static final double ANGLE_KP = 1.5;
@@ -78,9 +76,7 @@ public class Constants {
     public static final double ANGLE_KF = 0.0;
     
     /** Swerve constraints. */
-    public static final double MAX_VELOCITY_METERS_PER_SECOND = 0.1;
-    public static final double MAX_ACCEL_METERS_PER_SECOND_SQUARED = 1.0;
-    public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 0.5;
+    public static final double MAX_VELOCITY_METERS_PER_SECOND = 2.0;
 
     /** Inversions. */
     public static final boolean DRIVE_MOTOR_INVERSION = true;
@@ -123,5 +119,16 @@ public class Constants {
       12,
       155.214844
     );
+  }
+
+  public static class kAuto {
+    /** PID Values. */
+    public static final double X_CONTROLLER_KP = 1.0;
+    public static final double Y_CONTROLLER_KP = 1.0;
+    public static final double THETA_CONTROLLER_KP = 1.0;
+    
+    /** Constraints. */
+    public static final double MAX_VELOCITY_METERS_PER_SECOND = 2.0;
+    public static final double MAX_ACCEL_METERS_PER_SECOND_SQUARED = 5.0;
   }
 }
