@@ -9,11 +9,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.utils.SwerveModule;
@@ -36,7 +35,7 @@ public class Swerve extends SubsystemBase {
       new SwerveModule(3, Constants.kSwerve.MOD_3_Constants),
     };
 
-    swerveOdometry = new SwerveDriveOdometry(Constants.kSwerve.KINEMATICS, getYaw());
+    swerveOdometry = new SwerveDriveOdometry(Constants.kSwerve.KINEMATICS, getYaw(), getPositions());
   }
 
   /** 
@@ -47,7 +46,7 @@ public class Swerve extends SubsystemBase {
    * Double suppliers are just any function that returns a double.
    */
   public Command drive(DoubleSupplier forwardBackAxis, DoubleSupplier leftRightAxis, DoubleSupplier rotationAxis, boolean isFieldRelative, boolean isOpenLoop) {
-    return new RunCommand(() -> {
+    return run(() -> {
       // Grabbing input from suppliers.
       double forwardBack = forwardBackAxis.getAsDouble();
       double leftRight = leftRightAxis.getAsDouble();
@@ -66,7 +65,7 @@ public class Swerve extends SubsystemBase {
       SwerveModuleState[] states = Constants.kSwerve.KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
       setModuleStates(states, isOpenLoop);
-    }, this).withName("SwerveDriveCommand");
+    }).withName("SwerveDriveCommand");
   }
 
   /** To be used by auto. Use the drive method during teleop. */
@@ -92,12 +91,21 @@ public class Swerve extends SubsystemBase {
     return currentStates;
   }
 
+  public SwerveModulePosition[] getPositions() {
+    SwerveModulePosition currentStates[] = new SwerveModulePosition[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      currentStates[i] = modules[i].getPosition();
+    }
+
+    return currentStates;
+  }
+
   public Rotation2d getYaw() {
     return Rotation2d.fromDegrees(-gyro.getYaw());
   }
 
   public Command zeroGyroCommand() {
-    return new InstantCommand(this::zeroGyro).withName("ZeroGyroCommand");
+    return runOnce(this::zeroGyro).withName("ZeroGyroCommand");
   }
 
   private void zeroGyro() {
@@ -109,12 +117,12 @@ public class Swerve extends SubsystemBase {
   }
 
   public void resetOdometry(Pose2d pose) {
-    swerveOdometry.resetPosition(pose, getYaw());
+    swerveOdometry.resetPosition(getYaw(), getPositions(), pose);
   }
 
   @Override
   public void periodic() {
-    swerveOdometry.update(getYaw(), getStates());
+    swerveOdometry.update(getYaw(), getPositions());
   }
 
   @Override

@@ -12,6 +12,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
@@ -85,6 +86,12 @@ public class SwerveModule {
 
   public Rotation2d getAngle() {
     return new Rotation2d(angleEncoder.getPosition());
+  }
+  
+  public SwerveModulePosition getPosition() {
+    double distance = driveEncoder.getPosition();
+    Rotation2d rot = new Rotation2d(angleEncoder.getPosition());
+    return new SwerveModulePosition(distance, rot);
   }
 
   private void configureDevices() {
