@@ -13,7 +13,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
-import static edu.wpi.first.wpilibj2.command.Commands.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.utils.SwerveModule;
@@ -37,7 +36,7 @@ public class Swerve extends SubsystemBase {
       new SwerveModule(3, Constants.kSwerve.MOD_3_Constants),
     };
 
-    swerveOdometry = new SwerveDriveOdometry(Constants.kSwerve.KINEMATICS, getYaw());
+    swerveOdometry = new SwerveDriveOdometry(Constants.kSwerve.KINEMATICS, getYaw(), getPositions());
   }
 
   /** 
@@ -67,7 +66,7 @@ public class Swerve extends SubsystemBase {
       SwerveModuleState[] states = Constants.kSwerve.KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
       setModuleStates(states, isOpenLoop);
-    }, this).withName("SwerveDriveCommand");
+    }).withName("SwerveDriveCommand");
   }
 
   /** To be used by auto. Use the drive method during teleop. */
@@ -115,7 +114,7 @@ public class Swerve extends SubsystemBase {
   }
 
   public void resetOdometry(Pose2d pose) {
-    swerveOdometry.resetPosition(pose, getYaw());
+    swerveOdometry.resetPosition(getYaw(), getPositions(), pose);
   }
 
   @Override
