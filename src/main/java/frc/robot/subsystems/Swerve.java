@@ -1,12 +1,13 @@
 package frc.robot.subsystems;
 
 import java.util.List;
-import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -18,6 +19,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -62,19 +64,25 @@ public class Swerve extends SubsystemBase {
    * number of files in the command folder, increasing readability and reducing
    * boilerplate. 
    * 
-   * Double suppliers are just any function that returns a double.
+   * The supplier is a function that returns an array of [fowardback, leftright, theta].
    */
-  public Command drive(DoubleSupplier forwardBackAxis, DoubleSupplier leftRightAxis, DoubleSupplier rotationAxis, boolean isFieldRelative, boolean isOpenLoop) {
+  public Command drive(Supplier<double[]> transformSupplier, boolean isFieldRelative, boolean isOpenLoop) {
     return run(() -> {
       // Grabbing input from suppliers.
-      double forwardBack = forwardBackAxis.getAsDouble();
-      double leftRight = leftRightAxis.getAsDouble();
-      double rotation = rotationAxis.getAsDouble();
+      double[] transform = transformSupplier.get();
+      double forwardBack = transform[0];
+      double leftRight = transform[1];
+      double rotation = transform[2];
 
       // Adding deadzone.
       forwardBack = Math.abs(forwardBack) < Constants.kControls.AXIS_DEADZONE ? 0 : forwardBack;
       leftRight = Math.abs(leftRight) < Constants.kControls.AXIS_DEADZONE ? 0 : leftRight;
       rotation = Math.abs(rotation) < Constants.kControls.AXIS_DEADZONE ? 0 : rotation;
+
+      // Limiting to one.
+      forwardBack = MathUtil.clamp(forwardBack, -1, 1);
+      leftRight = MathUtil.clamp(leftRight, -1, 1);
+      rotation = MathUtil.clamp(rotation, -1, 1);
 
       // Get desired module states.
       ChassisSpeeds chassisSpeeds = isFieldRelative
@@ -106,60 +114,53 @@ public class Swerve extends SubsystemBase {
     PIDController thetaPID = new PIDController(1, 0, 0);
 
     distancePID.setSetpoint(distanceMeters);
-    thetaPID.setSetpoint(0);
+    thetaPID.setSetpoint(-90);
 
-    DoubleSupplier fowardBackSupplier = () -> {
+    Supplier<double[]> supplier = () -> {
+      double[] transform = new double[3];
+      
       PhotonTrackedTarget target = container.vision.getBestTarget();
       if (target == null) {
-        return 0;
+        return transform;
       }
 
       Translation3d translation = target.getBestCameraToTarget().getTranslation();
       Translation2d translation2d = new Translation2d(translation.getX(), translation.getY());
 
-      return distancePID.calculate(translation2d.getDistance(new Translation2d()));
+      double distance = distancePID.calculate(translation2d.getDistance(new Translation2d()));
+      Translation2d finalTranslation = new Translation2d(distance, Rotation2d.fromDegrees(target.getYaw()));
+
+      transform[0] = finalTranslation.getY();
+      transform[1] = finalTranslation.getX();
+      transform[2] = thetaPID.calculate(target.getYaw());
+
+      return transform;
     };
 
-    DoubleSupplier rotationSupplier = () -> {
-      PhotonTrackedTarget target = container.vision.getBestTarget();
-      if (target == null) {
-        return 0;
-      }
-      
-      return thetaPID.calculate(target.getYaw());
-    };
-
-    return drive(fowardBackSupplier, () -> 0, rotationSupplier, false, false)
+    return drive(supplier, false, false)
       .andThen(() -> { distancePID.close(); thetaPID.close(); });
   }
 
-  public Command odometryDrive(DoubleSupplier forwardBackAxis, DoubleSupplier leftRightAxis, DoubleSupplier rotationAxis) {
+  public Command odometryDrive(Supplier<double[]> transformSupplier) {
     PIDController yPID = new PIDController(1, 0, 0);
     PIDController xPID = new PIDController(1, 0, 0);
     PIDController thetaPID = new PIDController(1, 0, 0);
 
-    DoubleSupplier fowardBackSupplier = () -> {
-      double yAxis = forwardBackAxis.getAsDouble();
+    Supplier<double[]> supplier = () -> {
+      double[] transform = transformSupplier.get();
 
-      yPID.setSetpoint(yPID.getSetpoint() + yAxis * Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND * 0.02);
-      return yPID.calculate(swerveOdometry.getEstimatedPosition().getY());
+      yPID.setSetpoint(yPID.getSetpoint() + transform[0] * Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND * 0.02);
+      xPID.setSetpoint(xPID.getSetpoint() + transform[1] * Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND * 0.02);
+      thetaPID.setSetpoint(thetaPID.getSetpoint() + transform[2] * Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND * 0.02);
+
+      return new double[] {
+        yPID.calculate(swerveOdometry.getEstimatedPosition().getY()),
+        xPID.calculate(swerveOdometry.getEstimatedPosition().getX()),
+        thetaPID.calculate(swerveOdometry.getEstimatedPosition().getRotation().getRadians())
+      };
     };
 
-    DoubleSupplier leftRightSupplier = () -> {
-      double xAxis = leftRightAxis.getAsDouble();
-
-      xPID.setSetpoint(xPID.getSetpoint() + xAxis * Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND * 0.02);
-      return xPID.calculate(swerveOdometry.getEstimatedPosition().getX());
-    };
-
-    DoubleSupplier rotationSupplier = () -> {
-      double thetaAxis = rotationAxis.getAsDouble();
-
-      thetaPID.setSetpoint(thetaPID.getSetpoint() + thetaAxis * 2 * 0.02);
-      return thetaPID.calculate(swerveOdometry.getEstimatedPosition().getRotation().getRadians());
-    };
-
-    return drive(fowardBackSupplier, leftRightSupplier, rotationSupplier, false, false)
+    return drive(supplier, false, false)
       .andThen(() -> { yPID.close(); xPID.close(); thetaPID.close(); });
   }
 
@@ -205,8 +206,15 @@ public class Swerve extends SubsystemBase {
   public void periodic() {
     swerveOdometry.update(getYaw(), getPositions());
 
+    VisionMeasurement val = container.vision.getBestMeasurement();
+    SmartDashboard.putString("pos", val == null ? "null" : val.pose.toString());
+    
     // Loop through all measurements and add it to pose estimator
     List<VisionMeasurement> measurements = container.vision.getMeasurements();
+    if (measurements == null) {
+      return;
+    }
+
     for (VisionMeasurement measurement : measurements) {
       // Skip measurement if it's more than a meter away
       if (measurement.pose.getTranslation().getDistance(swerveOdometry.getEstimatedPosition().getTranslation()) > 1.0) {
