@@ -19,6 +19,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -33,6 +34,7 @@ public class Swerve extends SubsystemBase {
   private final SwerveModule[] modules;
 
   private final SwerveDrivePoseEstimator swerveOdometry;
+  private final Field2d field;
 
   private final AHRS gyro;
 
@@ -57,6 +59,7 @@ public class Swerve extends SubsystemBase {
       Constants.kSwerve.STATE_STANDARD_DEVIATION,
       Constants.kSwerve.LOCAL_MEASUREMENTS_STANDARD_DEVIATION
     );
+    field = new Field2d();
   }
 
   /** 
@@ -146,9 +149,9 @@ public class Swerve extends SubsystemBase {
   }
 
   public Command odometryDrive(Supplier<double[]> transformSupplier) {
-    PIDController yPID = new PIDController(1, 0, 0);
-    PIDController xPID = new PIDController(1, 0, 0);
-    PIDController thetaPID = new PIDController(1, 0, 0);
+    PIDController yPID = new PIDController(0.3, 0, 0);
+    PIDController xPID = new PIDController(0.3, 0, 0);
+    PIDController thetaPID = new PIDController(0.03, 0, 0);
 
     Supplier<double[]> supplier = () -> {
       double[] transform = transformSupplier.get();
@@ -187,7 +190,7 @@ public class Swerve extends SubsystemBase {
   }
 
   public Rotation2d getYaw() {
-    return Rotation2d.fromDegrees(-gyro.getYaw());
+    return Rotation2d.fromDegrees(-gyro.getAngle());
   }
 
   public Command zeroGyroCommand() {
@@ -206,27 +209,36 @@ public class Swerve extends SubsystemBase {
     swerveOdometry.resetPosition(getYaw(), getPositions(), pose);
   }
 
+  public void resetSensors(Pose2d pose) {
+    zeroGyro();
+    gyro.setAngleAdjustment(pose.getRotation().unaryMinus().getDegrees());
+    swerveOdometry.resetPosition(pose.getRotation(), getPositions(), pose);
+  }
+
   @Override
   public void periodic() {
     swerveOdometry.update(getYaw(), getPositions());
 
     // Loop through all measurements and add it to pose estimator
     List<VisionMeasurement> measurements = container.vision.getMeasurements();
-    if (measurements == null) {
-      return;
-    }
-
-    for (VisionMeasurement measurement : measurements) {
-      // Skip measurement if it's more than a meter away
-      if (measurement.pose.getTranslation().getDistance(swerveOdometry.getEstimatedPosition().getTranslation()) > 1.0) {
-        continue;
+    if (measurements != null) {
+      for (VisionMeasurement measurement : measurements) {
+        // Skip measurement if it's more than a meter away
+        if (measurement.pose.getTranslation().getDistance(swerveOdometry.getEstimatedPosition().getTranslation()) > 1.0) {
+          continue;
+        }
+  
+        swerveOdometry.addVisionMeasurement(
+          measurement.pose,
+          measurement.timestampSeconds,
+          Constants.kSwerve.VISION_STANDARD_DEVIATION);//.times(measurement.ambiguity + 0.9)); 
       }
-
-      swerveOdometry.addVisionMeasurement(
-        measurement.pose,
-        measurement.timestampSeconds,
-        Constants.kSwerve.VISION_STANDARD_DEVIATION.times(measurement.ambiguity + 0.9)); 
     }
+
+    field.setRobotPose(swerveOdometry.getEstimatedPosition());
+    SmartDashboard.putData(field);
+    SmartDashboard.putNumber("angle", getYaw().getRadians());
+    SmartDashboard.putNumber("angle odo", swerveOdometry.getEstimatedPosition().getRotation().getRadians());
   }
 
   @Override

@@ -88,7 +88,7 @@ public class Constants {
     public static final double ANGLE_KF = 0.0;
     
     /** Swerve constraints. */
-    public static final double MAX_VELOCITY_METERS_PER_SECOND = 2.0;
+    public static final double MAX_VELOCITY_METERS_PER_SECOND = 1.0;
 
     /** Inversions. */
     public static final boolean DRIVE_MOTOR_INVERSION = true;
@@ -107,7 +107,7 @@ public class Constants {
       VecBuilder.fill(0.9, 0.9, 0.9);
 
     public static final Matrix<N3, N1> VISION_STANDARD_DEVIATION = 
-      VecBuilder.fill(0, 0, 0); 
+      VecBuilder.fill(0.2, 0.2, 0.2); 
 
     /** 
      * Module specific constants.

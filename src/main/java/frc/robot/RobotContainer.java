@@ -7,7 +7,9 @@ import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.subsystems.Swerve;
 import frc.robot.utils.Vision;
@@ -43,16 +45,26 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    swerve.setDefaultCommand(swerve.drive(
-      () -> -driver.getRawAxis(Constants.kControls.TRANSLATION_Y_AXIS),
-      () -> -driver.getRawAxis(Constants.kControls.TRANSLATION_X_AXIS), 
-      () -> -driver.getRawAxis(Constants.kControls.ROTATION_AXIS),
-      true,
-      false
-    ));
+    swerve.setDefaultCommand(swerve.drive(() -> new double[] {
+        -driver.getRawAxis(Constants.kControls.TRANSLATION_Y_AXIS),
+        -driver.getRawAxis(Constants.kControls.TRANSLATION_X_AXIS),
+        -driver.getRawAxis(Constants.kControls.ROTATION_AXIS),
+    }, 
+    true,
+    false));
+    // swerve.setDefaultCommand(swerve.drive(
+    //   () -> -driver.getRawAxis(Constants.kControls.TRANSLATION_Y_AXIS),
+    //   () -> -driver.getRawAxis(Constants.kControls.TRANSLATION_X_AXIS), 
+    //   () -> -driver.getRawAxis(Constants.kControls.ROTATION_AXIS),
+    //   true,
+    //   false
+    // ));
 
     new JoystickButton(driver, Constants.kControls.GYRO_RESET_BUTTON)
       .onTrue(swerve.zeroGyroCommand());
+
+    new JoystickButton(driver, XboxController.Button.kRightBumper.value)
+      .onTrue(new InstantCommand(() -> { if (vision.getBestMeasurement() != null) swerve.resetSensors(vision.getBestMeasurement().pose); }));
   }
 
   /**
