@@ -69,7 +69,6 @@ public class SwerveModule {
       ? lastAngle
       : state.angle.getRadians();
 
-    angle = AngleUtils.reboundValue(angle, angleEncoder.getPosition());
     anglePID.setReference(angle, CANSparkMax.ControlType.kPosition);
     lastAngle = angle;
   }
@@ -87,7 +86,7 @@ public class SwerveModule {
   public Rotation2d getAngle() {
     return new Rotation2d(angleEncoder.getPosition());
   }
-  
+
   public SwerveModulePosition getPosition() {
     double distance = driveEncoder.getPosition();
     Rotation2d rot = new Rotation2d(angleEncoder.getPosition());
@@ -117,11 +116,15 @@ public class SwerveModule {
     angleMotor.setInverted(Constants.kSwerve.ANGLE_MOTOR_INVERSION);
     angleMotor.setIdleMode(Constants.kSwerve.ANGLE_IDLE_MODE);
     angleMotor.setSmartCurrentLimit(Constants.kSwerve.ANGLE_CURRENT_LIMIT);
-    
+
     anglePID.setP(Constants.kSwerve.ANGLE_KP);
     anglePID.setI(Constants.kSwerve.ANGLE_KI);
     anglePID.setD(Constants.kSwerve.ANGLE_KD);
     anglePID.setFF(Constants.kSwerve.ANGLE_KF);
+
+    anglePID.setPositionPIDWrappingEnabled(true);
+    anglePID.setPositionPIDWrappingMaxInput(2 * Math.PI);
+    anglePID.setPositionPIDWrappingMinInput(0);
 
     angleEncoder.setPositionConversionFactor(Constants.kSwerve.ANGLE_ROTATIONS_TO_RADIANS);
     angleEncoder.setVelocityConversionFactor(Constants.kSwerve.ANGLE_RPM_TO_RADIANS_PER_SECOND);
