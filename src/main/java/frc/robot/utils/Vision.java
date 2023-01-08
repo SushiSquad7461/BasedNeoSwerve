@@ -60,7 +60,6 @@ public class Vision {
   }
   
   private void update() {
-    PhotonPipelineResult res = camera.getLatestResult();
     
     // Return if no new data is ready
     if (lastUpdateTimeMicro == rawBytesEntry.getLastChange()) {
@@ -68,11 +67,12 @@ public class Vision {
     } else {
       lastUpdateTimeMicro = rawBytesEntry.getLastChange();
     }
-
+    
+    PhotonPipelineResult res = camera.getLatestResult();
     if (!res.hasTargets()) {
       return;
     }
-
+    
     // Get best target and the pose from that target
     bestTarget = res.getBestTarget();
     Pose3d bestPose = getRobotPoseFromTarget(bestTarget);

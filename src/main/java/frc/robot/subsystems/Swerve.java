@@ -3,11 +3,16 @@ package frc.robot.subsystems;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
+import org.photonvision.targeting.PhotonTrackedTarget;
+
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -94,6 +99,38 @@ public class Swerve extends SubsystemBase {
     for (int i = 0; i < modules.length; i++) {
       modules[i].setState(states[modules[i].moduleNumber], isOpenLoop);
     }
+  }
+
+  public Command maintainDistanceFromAprilTag(double distanceMeters) {
+    PIDController distancePID = new PIDController(1, 0, 0);
+    PIDController thetaPID = new PIDController(1, 0, 0);
+
+    distancePID.setSetpoint(distanceMeters);
+    thetaPID.setSetpoint(0);
+
+    DoubleSupplier fowardBackSupplier = () -> {
+      PhotonTrackedTarget target = container.vision.getBestTarget();
+      if (target == null) {
+        return 0;
+      }
+
+      Translation3d translation = target.getBestCameraToTarget().getTranslation();
+      Translation2d translation2d = new Translation2d(translation.getX(), translation.getY());
+
+      return distancePID.calculate(translation2d.getDistance(new Translation2d()));
+    };
+
+    DoubleSupplier rotationSupplier = () -> {
+      PhotonTrackedTarget target = container.vision.getBestTarget();
+      if (target == null) {
+        return 0;
+      }
+      
+      return thetaPID.calculate(target.getYaw());
+    };
+
+    return drive(fowardBackSupplier, () -> 0, rotationSupplier, false, false)
+      .andThen(() -> { distancePID.close(); thetaPID.close(); });
   }
 
   public SwerveModuleState[] getStates() {
