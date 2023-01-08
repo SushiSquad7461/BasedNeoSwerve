@@ -32,7 +32,7 @@ public class Vision {
     NetworkTableInstance ntInstance = NetworkTableInstance.getDefault();
 
     if (Robot.isReal()) {
-      camera = new PhotonCamera("photonvision");
+      camera = new PhotonCamera("limelight");
     } else {
       // This is required for PV simulation in localhost
       ntInstance.stopServer();
@@ -41,7 +41,10 @@ public class Vision {
       camera = new PhotonCamera(ntInstance, "Integrated_Webcam");
     }
 
-    rawBytesEntry = ntInstance.getEntry("rawBytes");
+    rawBytesEntry = ntInstance
+      .getTable("photonvision")
+      .getSubTable("limelight")
+      .getEntry("rawBytes");
   }
 
   public List<VisionMeasurement> getMeasurements() {
@@ -60,14 +63,12 @@ public class Vision {
   }
   
   private void update() {
-    
     // Return if no new data is ready
     if (lastUpdateTimeMicro == rawBytesEntry.getLastChange()) {
       return;
     } else {
       lastUpdateTimeMicro = rawBytesEntry.getLastChange();
     }
-    
     PhotonPipelineResult res = camera.getLatestResult();
     if (!res.hasTargets()) {
       return;
