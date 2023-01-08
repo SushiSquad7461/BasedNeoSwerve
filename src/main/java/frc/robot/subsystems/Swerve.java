@@ -13,7 +13,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -139,13 +138,18 @@ public class Swerve extends SubsystemBase {
   public void periodic() {
     swerveOdometry.update(getYaw(), getPositions());
 
+    // Loop through all measurements and add it to pose estimator
     List<VisionMeasurement> measurements = container.vision.getMeasurements();
-
     for (VisionMeasurement measurement : measurements) {
+      // Skip measurement if it's more than a meter away
+      if (measurement.pose.getTranslation().getDistance(swerveOdometry.getEstimatedPosition().getTranslation()) > 1.0) {
+        continue;
+      }
+
       swerveOdometry.addVisionMeasurement(
         measurement.pose,
-        Timer.getFPGATimestamp() - (measurement.latencyMillis / 1000),
-        Constants.kSwerve.VISION_STANDARD_DEVIATION.times(measurement.ambiguity)); 
+        measurement.timestampSeconds,
+        Constants.kSwerve.VISION_STANDARD_DEVIATION.times(measurement.ambiguity + 0.9)); 
     }
   }
 
