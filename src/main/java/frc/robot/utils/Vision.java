@@ -72,6 +72,9 @@ public class Vision {
     }
     PhotonPipelineResult res = camera.getLatestResult();
     if (!res.hasTargets()) {
+      measurements.clear();
+      bestTarget = null;
+      bestMeasurement = null;
       return;
     }
     
