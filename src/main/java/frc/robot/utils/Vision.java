@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
@@ -120,9 +121,6 @@ public class Vision {
     // Get transform that converts from camera pose to target pose
     Transform3d cameraToTarget = target.getBestCameraToTarget();
 
-    // Invert it so that it converts a target pose to camera pose
-    Transform3d targetToCamera = cameraToTarget.inverse();
-
     // Get the april tag's pose on the field
     Optional<Pose3d> feducialPos = Constants.kVision.APRIL_TAG_FIELD_LAYOUT
       .getTagPose(target.getFiducialId());
@@ -132,12 +130,9 @@ public class Vision {
         return null;
     }
 
-    // Convert the april tag pose to robot pose
-    Pose3d estCameraPose = feducialPos.get().transformBy(targetToCamera);
-
-    // Convert the camera pose to robot pose
-    Pose3d estRobotPos = estCameraPose.transformBy(Constants.kVision.CAMERA_TO_ROBOT_METERS_DEGREES);
-
-    return estRobotPos;
+    return PhotonUtils.estimateFieldToRobotAprilTag(
+      cameraToTarget,
+      feducialPos.get(), 
+      Constants.kVision.CAMERA_TO_ROBOT_METERS_DEGREES);
   }
 }

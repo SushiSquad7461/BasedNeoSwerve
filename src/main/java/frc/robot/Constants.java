@@ -6,6 +6,7 @@ import com.revrobotics.CANSparkMax.IdleMode;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -169,9 +170,14 @@ public class Constants {
       }
     }
     
-    public static final Translation3d CAMERA_POS_METERS = new Translation3d(0, 0, 0);
-    public static final Rotation3d CAMERA_ANGLE_DEGREES = new Rotation3d(0, 0, 0);
-    public static final Transform3d ROBOT_TO_CAMERA_METERS_DEGREES = new Transform3d(CAMERA_POS_METERS, CAMERA_ANGLE_DEGREES); 
-    public static final Transform3d CAMERA_TO_ROBOT_METERS_DEGREES = ROBOT_TO_CAMERA_METERS_DEGREES.inverse(); 
+    // X is forward, Y is left, Z is up.
+    public static final Translation3d CAMERA_POS_METERS = new Translation3d(
+      Units.inchesToMeters(4.5), 
+      Units.inchesToMeters(14),
+      Units.inchesToMeters(13));
+    public static final Rotation3d CAMERA_ANGLE_DEGREES = new Rotation3d(0, 0, Units.degreesToRadians(90));
+    public static final Transform3d CAMERA_TO_ROBOT_METERS_DEGREES = new Transform3d(
+      new Pose3d(CAMERA_POS_METERS, CAMERA_ANGLE_DEGREES), 
+      new Pose3d()); 
   }
 }
