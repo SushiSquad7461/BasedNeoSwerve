@@ -1,11 +1,23 @@
 package frc.robot;
 
+import java.io.IOException;
+
 import com.revrobotics.CANSparkMax.IdleMode;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N7;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.apriltag.AprilTagFieldLayout;
 import frc.robot.utils.SwerveModuleConstants;
 
 /**
@@ -87,6 +99,16 @@ public class Constants {
     public static final IdleMode DRIVE_IDLE_MODE = IdleMode.kBrake;
     public static final IdleMode ANGLE_IDLE_MODE = IdleMode.kCoast;
 
+    /** Pose estimation standard deviations. */
+    public static final Matrix<N7, N1> STATE_STANDARD_DEVIATION = 
+      VecBuilder.fill(0, 0, 0, 0, 0, 0, 0);
+
+    public static final Matrix<N7, N1> LOCAL_MEASUREMENTS_STANDARD_DEVIATION = 
+      VecBuilder.fill(0, 0, 0, 0, 0, 0, 0);
+
+    public static final Matrix<N3, N1> VISION_STANDARD_DEVIATION = 
+      VecBuilder.fill(0, 0, 0); 
+
     /** 
      * Module specific constants.
      * CanCoder offset is in DEGREES, not radians like the rest of the repo.
@@ -130,5 +152,27 @@ public class Constants {
     /** Constraints. */
     public static final double MAX_VELOCITY_METERS_PER_SECOND = 2.0;
     public static final double MAX_ACCEL_METERS_PER_SECOND_SQUARED = 5.0;
+  }
+  
+  /** Vision constants. */
+  public static class kVision {
+    public static final AprilTagFieldLayout APRIL_TAG_FIELD_LAYOUT = createFieldLayout();
+    /**
+     * Since the april tag field layout constructor throws something, we need
+     * create a method to handle it.
+     */ 
+    private static AprilTagFieldLayout createFieldLayout() {
+
+      try {
+        return new AprilTagFieldLayout(Filesystem.getDeployDirectory().toPath().resolve("april-tag-layout.json"));
+      } catch (IOException e) {
+        throw new Error(e);
+      }
+    }
+    
+    public static final Translation3d CAMERA_POS_METERS = new Translation3d(0, 0, 0);
+    public static final Rotation3d CAMERA_ANGLE_DEGREES = new Rotation3d(0, 0, 0);
+    public static final Transform3d ROBOT_TO_CAMERA_METERS_DEGREES = new Transform3d(CAMERA_POS_METERS, CAMERA_ANGLE_DEGREES); 
+    public static final Transform3d CAMERA_TO_ROBOT_METERS_DEGREES = ROBOT_TO_CAMERA_METERS_DEGREES.inverse(); 
   }
 }
