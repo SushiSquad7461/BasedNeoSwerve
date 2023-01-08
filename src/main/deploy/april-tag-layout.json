@@ -5,7 +5,7 @@
         "translation" : {
           "x" : 0,
           "y" : 0,
-          "z" : 0.28575
+          "z" : 0
         },
         "rotation" : {
           "quaternion" : {
@@ -18,7 +18,7 @@
       }
     } ],
     "field" : {
-      "height" : 8.2296,
+      "length" : 8.2296,
       "width" : 16.4592
     }
   }
