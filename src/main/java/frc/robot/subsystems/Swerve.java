@@ -70,6 +70,7 @@ public class Swerve extends SubsystemBase {
     return run(() -> {
       // Grabbing input from suppliers.
       double[] transform = transformSupplier.get();
+      SmartDashboard.putNumberArray("movement", transform);
       double forwardBack = transform[0];
       double leftRight = transform[1];
       double rotation = transform[2];
@@ -110,11 +111,11 @@ public class Swerve extends SubsystemBase {
   }
 
   public Command maintainDistanceFromAprilTag(double distanceMeters) {
-    PIDController distancePID = new PIDController(1, 0, 0);
-    PIDController thetaPID = new PIDController(1, 0, 0);
+    PIDController distancePID = new PIDController(0.3, 0, 0);
+    PIDController thetaPID = new PIDController(0.03, 0, 0);
 
     distancePID.setSetpoint(distanceMeters);
-    thetaPID.setSetpoint(-90);
+    thetaPID.setSetpoint(0);
 
     Supplier<double[]> supplier = () -> {
       double[] transform = new double[3];
@@ -127,11 +128,14 @@ public class Swerve extends SubsystemBase {
       Translation3d translation = target.getBestCameraToTarget().getTranslation();
       Translation2d translation2d = new Translation2d(translation.getX(), translation.getY());
 
-      double distance = distancePID.calculate(translation2d.getDistance(new Translation2d()));
-      Translation2d finalTranslation = new Translation2d(distance, Rotation2d.fromDegrees(target.getYaw()));
+      double distance = distancePID.calculate(Math.max(distanceMeters, translation2d.getDistance(new Translation2d())));
+      Translation2d finalTranslation = new Translation2d(
+        distance, 
+        Rotation2d.fromDegrees(-target.getYaw())
+          .plus(Constants.kVision.CAMERA_ANGLE_DEGREES.toRotation2d().unaryMinus()));
 
-      transform[0] = finalTranslation.getY();
-      transform[1] = finalTranslation.getX();
+      transform[0] = finalTranslation.getX();
+      transform[1] = finalTranslation.getY();
       transform[2] = thetaPID.calculate(target.getYaw());
 
       return transform;
@@ -206,9 +210,6 @@ public class Swerve extends SubsystemBase {
   public void periodic() {
     swerveOdometry.update(getYaw(), getPositions());
 
-    VisionMeasurement val = container.vision.getBestMeasurement();
-    SmartDashboard.putString("pos", val == null ? "null" : val.pose.toString());
-    
     // Loop through all measurements and add it to pose estimator
     List<VisionMeasurement> measurements = container.vision.getMeasurements();
     if (measurements == null) {
