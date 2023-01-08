@@ -13,10 +13,10 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.numbers.N7;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import frc.robot.utils.SwerveModuleConstants;
 
 /**
@@ -42,11 +42,9 @@ public class Constants {
   /** All swerve constants. */
   public static class kSwerve {
     /** Constants that apply to the whole drive train. */
-    public static final int PIGEON2_ID = 0;
-
-    public static final double TRACK_WIDTH = 0; // Width of the drivetrain measured from the middle of the wheels.
-    public static final double WHEEL_BASE = 0; // Length of the drivetrain measured from the middle of the wheels.
-    public static final double WHEEL_DIAMETER = 0;
+    public static final double TRACK_WIDTH = Units.inchesToMeters(19.5); // Width of the drivetrain measured from the middle of the wheels.
+    public static final double WHEEL_BASE = Units.inchesToMeters(19.5); // Length of the drivetrain measured from the middle of the wheels.
+    public static final double WHEEL_DIAMETER = Units.inchesToMeters(4);
     public static final double WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * Math.PI;
 
     public static final SwerveDriveKinematics KINEMATICS = new SwerveDriveKinematics(
@@ -56,7 +54,7 @@ public class Constants {
       new Translation2d(-WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0)
     );
 
-    public static final double DRIVE_GEAR_RATIO = 6.86 / 1.0; // 6.86:1
+    public static final double DRIVE_GEAR_RATIO = 6.75 / 1.0; // 6.75:1
     public static final double DRIVE_ROTATIONS_TO_METERS = WHEEL_CIRCUMFERENCE / DRIVE_GEAR_RATIO;
     public static final double DRIVE_RPM_TO_METERS_PER_SECOND = DRIVE_ROTATIONS_TO_METERS / 60.0;
     public static final double ANGLE_GEAR_RATIO = 12.8 / 1.0; // 12.8:1
@@ -72,29 +70,27 @@ public class Constants {
     public static final int ANGLE_CURRENT_LIMIT = 25;
 
     /** Drive motor PID values. */
-    public static final double DRIVE_KP = 0.0;
+    public static final double DRIVE_KP = 0.1;
     public static final double DRIVE_KI = 0.0;
     public static final double DRIVE_KD = 0.0;
     public static final double DRIVE_KF = 0.0;
 
     /** Drive motor characterization. */
-    public static final double DRIVE_KS = 0.0;
-    public static final double DRIVE_KV = 0.0;
-    public static final double DRIVE_KA = 0.0;
+    public static final double DRIVE_KS = 0.11937;
+    public static final double DRIVE_KV = 2.6335;
+    public static final double DRIVE_KA = 0.46034;
 
-    /** Drive motor PID values. */
-    public static final double ANGLE_KP = 0.0;
+    /** Angle motor PID values. */
+    public static final double ANGLE_KP = 1.5;
     public static final double ANGLE_KI = 0.0;
-    public static final double ANGLE_KD = 0.0;
+    public static final double ANGLE_KD = 0.1;
     public static final double ANGLE_KF = 0.0;
     
     /** Swerve constraints. */
-    public static final double MAX_VELOCITY_METERS_PER_SECOND = 0;
-    public static final double MAX_ACCEL_METERS_PER_SECOND_SQUARED = 0;
-    public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 0;
+    public static final double MAX_VELOCITY_METERS_PER_SECOND = 2.0;
 
     /** Inversions. */
-    public static final boolean DRIVE_MOTOR_INVERSION = false;
+    public static final boolean DRIVE_MOTOR_INVERSION = true;
     public static final boolean ANGLE_MOTOR_INVERSION = false;
     public static final boolean CANCODER_INVERSION = false;
 
@@ -103,11 +99,11 @@ public class Constants {
     public static final IdleMode ANGLE_IDLE_MODE = IdleMode.kCoast;
 
     /** Pose estimation standard deviations. */
-    public static final Matrix<N7, N1> STATE_STANDARD_DEVIATION = 
-      VecBuilder.fill(0, 0, 0, 0, 0, 0, 0);
+    public static final Matrix<N3, N1> STATE_STANDARD_DEVIATION = 
+      VecBuilder.fill(0, 0, 0);
 
-    public static final Matrix<N7, N1> LOCAL_MEASUREMENTS_STANDARD_DEVIATION = 
-      VecBuilder.fill(0, 0, 0, 0, 0, 0, 0);
+    public static final Matrix<N3, N1> LOCAL_MEASUREMENTS_STANDARD_DEVIATION = 
+      VecBuilder.fill(0, 0, 0);
 
     public static final Matrix<N3, N1> VISION_STANDARD_DEVIATION = 
       VecBuilder.fill(0, 0, 0); 
@@ -121,29 +117,40 @@ public class Constants {
       1,
       2,
       3,
-      0.0
+      203.115234
     );
 
     public static final SwerveModuleConstants MOD_1_Constants = new SwerveModuleConstants(
       4,
       5,
       6,
-      0.0
+      191.074219  
     );
 
     public static final SwerveModuleConstants MOD_2_Constants = new SwerveModuleConstants(
       7,
       8,
       9,
-      0.0
+      203.906250
     );
 
     public static final SwerveModuleConstants MOD_3_Constants = new SwerveModuleConstants(
       10,
       11,
       12,
-      0.0
+      155.214844
     );
+  }
+
+  public static class kAuto {
+    /** PID Values. */
+    public static final double X_CONTROLLER_KP = 1.0;
+    public static final double Y_CONTROLLER_KP = 1.0;
+    public static final double THETA_CONTROLLER_KP = 1.0;
+    
+    /** Constraints. */
+    public static final double MAX_VELOCITY_METERS_PER_SECOND = 2.0;
+    public static final double MAX_ACCEL_METERS_PER_SECOND_SQUARED = 5.0;
   }
 
   /** Vision constants. */
@@ -166,6 +173,5 @@ public class Constants {
     public static final Rotation3d CAMERA_ANGLE_DEGREES = new Rotation3d(0, 0, 0);
     public static final Transform3d ROBOT_TO_CAMERA_METERS_DEGREES = new Transform3d(CAMERA_POS_METERS, CAMERA_ANGLE_DEGREES); 
     public static final Transform3d CAMERA_TO_ROBOT_METERS_DEGREES = ROBOT_TO_CAMERA_METERS_DEGREES.inverse(); 
-
   }
 }
