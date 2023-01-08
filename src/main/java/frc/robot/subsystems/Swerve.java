@@ -133,6 +133,36 @@ public class Swerve extends SubsystemBase {
       .andThen(() -> { distancePID.close(); thetaPID.close(); });
   }
 
+  public Command odometryDrive(DoubleSupplier forwardBackAxis, DoubleSupplier leftRightAxis, DoubleSupplier rotationAxis) {
+    PIDController yPID = new PIDController(1, 0, 0);
+    PIDController xPID = new PIDController(1, 0, 0);
+    PIDController thetaPID = new PIDController(1, 0, 0);
+
+    DoubleSupplier fowardBackSupplier = () -> {
+      double yAxis = forwardBackAxis.getAsDouble();
+
+      yPID.setSetpoint(yPID.getSetpoint() + yAxis * Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND * 0.02);
+      return yPID.calculate(swerveOdometry.getEstimatedPosition().getY());
+    };
+
+    DoubleSupplier leftRightSupplier = () -> {
+      double xAxis = leftRightAxis.getAsDouble();
+
+      xPID.setSetpoint(xPID.getSetpoint() + xAxis * Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND * 0.02);
+      return xPID.calculate(swerveOdometry.getEstimatedPosition().getX());
+    };
+
+    DoubleSupplier rotationSupplier = () -> {
+      double thetaAxis = rotationAxis.getAsDouble();
+
+      thetaPID.setSetpoint(thetaPID.getSetpoint() + thetaAxis * 2 * 0.02);
+      return thetaPID.calculate(swerveOdometry.getEstimatedPosition().getRotation().getRadians());
+    };
+
+    return drive(fowardBackSupplier, leftRightSupplier, rotationSupplier, false, false)
+      .andThen(() -> { yPID.close(); xPID.close(); thetaPID.close(); });
+  }
+
   public SwerveModuleState[] getStates() {
     SwerveModuleState currentStates[] = new SwerveModuleState[modules.length];
     for (int i = 0; i < modules.length; i++) {
