@@ -1,10 +1,5 @@
 package frc.robot;
 
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.commands.PPSwerveControllerCommand;
-
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -22,10 +17,14 @@ public class RobotContainer {
 
   public final Swerve swerve;
 
+  public final AutoCommands auto;
+
   public RobotContainer() {
     driver = new Joystick(Constants.kControls.DRIVE_JOYSTICK_ID);
 
     swerve = new Swerve();
+
+    auto = new AutoCommands(swerve);
 
     // Configure button bindings
     configureButtonBindings();
@@ -56,21 +55,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    PathPlannerTrajectory traj = PathPlanner.loadPath(
-      "Test", 
-      Constants.kAuto.MAX_VELOCITY_METERS_PER_SECOND, 
-      Constants.kAuto.MAX_ACCEL_METERS_PER_SECOND_SQUARED);
-
-    swerve.resetOdometry(traj.getInitialHolonomicPose());
-
-    return new PPSwerveControllerCommand(
-      traj,
-      swerve::getPose,
-      Constants.kSwerve.KINEMATICS,
-      new PIDController(Constants.kAuto.X_CONTROLLER_KP, 0, 0),
-      new PIDController(Constants.kAuto.Y_CONTROLLER_KP, 0, 0),
-      new PIDController(Constants.kAuto.THETA_CONTROLLER_KP, 0, 0),
-      swerve::setModuleStates,
-      this.swerve);
+    return auto.getSelectedCommand();
   }
 }
