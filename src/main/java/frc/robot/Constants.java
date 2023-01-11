@@ -103,11 +103,8 @@ public class Constants {
     public static final Matrix<N3, N1> STATE_STANDARD_DEVIATION = 
       VecBuilder.fill(0.1, 0.1, 0.1);
 
-    public static final Matrix<N3, N1> LOCAL_MEASUREMENTS_STANDARD_DEVIATION = 
-      VecBuilder.fill(0.9, 0.9, 0.9);
-
     public static final Matrix<N3, N1> VISION_STANDARD_DEVIATION = 
-      VecBuilder.fill(0.2, 0.2, 0.2); 
+      VecBuilder.fill(0.9, 0.9, 0.9);
 
     /** 
      * Module specific constants.

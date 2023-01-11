@@ -57,7 +57,7 @@ public class Swerve extends SubsystemBase {
       getPositions(),
       new Pose2d(),
       Constants.kSwerve.STATE_STANDARD_DEVIATION,
-      Constants.kSwerve.LOCAL_MEASUREMENTS_STANDARD_DEVIATION
+      Constants.kSwerve.VISION_STANDARD_DEVIATION
     );
     field = new Field2d();
   }
