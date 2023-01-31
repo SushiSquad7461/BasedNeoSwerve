@@ -91,7 +91,7 @@ public class Vision {
           bestPose.getX(),
           bestPose.getY(),
           new Rotation2d(bestPose.getRotation().getZ())), 
-        res.getLatencyMillis(),
+        res.getTimestampSeconds(),
         bestTarget.getPoseAmbiguity()); 
     }
 
