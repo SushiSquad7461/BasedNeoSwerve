@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.revrobotics.CANSparkMax.IdleMode;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
@@ -26,6 +27,11 @@ public class Constants {
     public static final int ROTATION_AXIS = XboxController.Axis.kRightX.value;
 
     public static final int GYRO_RESET_BUTTON = XboxController.Button.kY.value;
+
+    // Prevent from acclerating/decclerating to quick
+    public static final SlewRateLimiter X_DRIVE_LIMITER = new SlewRateLimiter(4);
+    public static final SlewRateLimiter Y_DRIVE_LIMITER = new SlewRateLimiter(4);
+    public static final SlewRateLimiter THETA_DRIVE_LIMITER = new SlewRateLimiter(4);
   }
 
   /** All swerve constants. */
@@ -76,7 +82,8 @@ public class Constants {
     public static final double ANGLE_KF = 0.0;
     
     /** Swerve constraints. */
-    public static final double MAX_VELOCITY_METERS_PER_SECOND = 2.0;
+    public static final double MAX_VELOCITY_METERS_PER_SECOND = 3.0;
+    public static final double MAX_ANGULAR_RADIANS_PER_SECOND = 4.0;
 
     /** Inversions. */
     public static final boolean DRIVE_MOTOR_INVERSION = true;

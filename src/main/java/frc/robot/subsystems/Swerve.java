@@ -26,7 +26,6 @@ public class Swerve extends SubsystemBase {
 
   public Swerve() {
     gyro = new AHRS();
-    zeroGyro();
 
     modules = new SwerveModule[] {
       new SwerveModule(0, Constants.kSwerve.MOD_0_Constants),
@@ -36,6 +35,7 @@ public class Swerve extends SubsystemBase {
     };
 
     swerveOdometry = new SwerveDriveOdometry(Constants.kSwerve.KINEMATICS, getYaw(), getPositions());
+    zeroGyro();
   }
 
   /** 
@@ -56,6 +56,11 @@ public class Swerve extends SubsystemBase {
       forwardBack = Math.abs(forwardBack) < Constants.kControls.AXIS_DEADZONE ? 0 : forwardBack;
       leftRight = Math.abs(leftRight) < Constants.kControls.AXIS_DEADZONE ? 0 : leftRight;
       rotation = Math.abs(rotation) < Constants.kControls.AXIS_DEADZONE ? 0 : rotation;
+
+      // Converting to m/s
+      forwardBack *= Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND;
+      leftRight *= Constants.kSwerve.MAX_VELOCITY_METERS_PER_SECOND;
+      rotation *= Constants.kSwerve.MAX_ANGULAR_RADIANS_PER_SECOND;
 
       // Get desired module states.
       ChassisSpeeds chassisSpeeds = isFieldRelative
